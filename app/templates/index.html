@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Dashboard &mdash; Health Research Journal{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h3 mb-0">Your Library</h1>
+  <a href="/upload" class="btn btn-dark">+ Add Item</a>
+</div>
+
+<!-- Quick search bar -->
+<form action="/search" method="get" class="mb-4">
+  <div class="input-group">
+    <input type="text" class="form-control" name="q" placeholder="Search your library (e.g. magnesium, thyroid, MTHFR)...">
+    <button class="btn btn-outline-secondary" type="submit">Search</button>
+  </div>
+</form>
+
+{% if items %}
+<div class="row row-cols-1 row-cols-md-2 g-3">
+  {% for item in items %}
+  <div class="col">
+    <div class="card h-100 shadow-sm">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start mb-1">
+          <span class="badge source-badge source-{{ item.source_type }}">{{ item.source_type }}</span>
+          <small class="text-muted">{{ item.created_at.strftime('%b %d, %Y') }}</small>
+        </div>
+        <h5 class="card-title mt-1">
+          <a href="/item/{{ item.id }}" class="text-decoration-none text-dark">{{ item.title }}</a>
+        </h5>
+        {% if item.summary and item.summary.claim %}
+        <p class="card-text text-muted small">{{ item.summary.claim }}</p>
+        {% elif not item.summary %}
+        <p class="card-text text-warning small"><em>Summary pending &mdash; Gemini API key may not be configured.</em></p>
+        {% endif %}
+        {% if item.tags %}
+        <div class="mt-2">
+          {% for tag in item.tags %}
+          <a href="/search?tag={{ tag.name }}" class="badge bg-secondary text-decoration-none me-1">{{ tag.name }}</a>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+      <div class="card-footer bg-transparent">
+        <a href="/item/{{ item.id }}" class="btn btn-sm btn-outline-dark">Read more</a>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-5 text-muted">
+  <p class="fs-5">No items yet.</p>
+  <a href="/upload" class="btn btn-dark">Add your first item</a>
+</div>
+{% endif %}
+{% endblock %}

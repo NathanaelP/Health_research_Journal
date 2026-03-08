@@ -1,0 +1,33 @@
+/* Health Research Journal — custom styles */
+
+body {
+  background-color: #f8f9fa;
+}
+
+/* Source type badge colors */
+.source-badge { font-size: 0.72em; }
+.source-link       { background-color: #0d6efd; color: #fff; }
+.source-screenshot { background-color: #6f42c1; color: #fff; }
+.source-pdf        { background-color: #dc3545; color: #fff; }
+.source-text       { background-color: #198754; color: #fff; }
+
+/* Card hover lift */
+.card:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10) !important;
+  transition: box-shadow 0.15s ease;
+}
+
+/* Readable explanation text */
+.explanation-text p {
+  line-height: 1.75;
+}
+
+/* Slightly larger textarea */
+#content {
+  font-size: 0.95rem;
+}
+
+/* Tighten navbar brand */
+.navbar-brand {
+  letter-spacing: -0.3px;
+}
