@@ -1,6 +1,6 @@
 # Health Research Journal
 
-A private local web app that turns scattered health content into an organized, searchable library. Hosted on a Raspberry Pi 4. AI summaries powered by Gemini API.
+A private local web app that turns scattered health content into an organized, searchable library. Hosted on a Raspberry Pi. AI summaries powered by Gemini API.
 
 ---
 
@@ -18,91 +18,145 @@ A private local web app that turns scattered health content into an organized, s
 
 ---
 
-## Quick Start
+## Hardware
 
-### 1. Install system dependencies
+This app runs on either a **Raspberry Pi 3 Model B** or **Raspberry Pi 4**.
 
-On Raspberry Pi OS (or Debian/Ubuntu):
+The Pi 3B (1GB RAM) is perfectly capable — the app is lightweight. FastAPI + SQLite + Gemini API calls use well under 512MB in normal use. OCR (Tesseract) is CPU-intensive but runs fine for occasional household use.
+
+---
+
+## Setting Up on a Fresh Raspberry Pi 3 (Recommended — clean slate)
+
+### Step 1: Flash the OS
+
+Use **[Raspberry Pi Imager](https://www.raspberrypi.com/software/)** (free, runs on Windows/Mac/Linux):
+
+1. Download and open Raspberry Pi Imager
+2. **Choose Device:** Raspberry Pi 3
+3. **Choose OS:** Raspberry Pi OS Lite (64-bit) — under "Raspberry Pi OS (other)"
+   - Lite = no desktop, runs headless. Saves RAM for the app.
+4. **Choose Storage:** your SD card
+5. Click the **gear icon** (Advanced Options) before writing:
+   - Enable SSH
+   - Set a username and password (e.g. user: `pi`, password: your choice)
+   - Configure your Wi-Fi network name and password
+6. Write the card, insert into Pi, power on
+
+### Step 2: SSH into the Pi
+
+From your laptop (same Wi-Fi network):
 
 ```bash
-sudo apt update
-sudo apt install -y tesseract-ocr python3-pip python3-venv
+ssh pi@raspberrypi.local
 ```
 
-### 2. Clone the repo and set up Python environment
+If that doesn't resolve, find the Pi's IP from your router's device list, then:
 
 ```bash
-git clone <your-repo-url>
+ssh pi@<ip-address>
+```
+
+### Step 3: Update the system
+
+```bash
+sudo apt update && sudo apt upgrade -y
+```
+
+### Step 4: Install system dependencies
+
+```bash
+sudo apt install -y tesseract-ocr python3-venv git
+```
+
+- `tesseract-ocr` — required for OCR on screenshots
+- `python3-venv` — required to create an isolated Python environment
+- `git` — to clone the repo
+
+### Step 5: Clone the repo
+
+```bash
+cd ~
+git clone https://github.com/NathanaelP/Health_research_Journal.git
 cd Health_research_Journal
+```
+
+### Step 6: Create a Python virtual environment
+
+**Important:** Always use a venv — never `sudo pip install`. The venv keeps all app packages isolated from the system.
+
+```bash
 python3 -m venv venv
 source venv/bin/activate
+pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-### 3. Get a free Gemini API key
+This will take several minutes on the Pi 3 — it's compiling some packages for ARM. Let it run.
+
+### Step 7: Get a free Gemini API key
 
 1. Go to [https://aistudio.google.com/apikey](https://aistudio.google.com/apikey)
 2. Sign in with a Google account (free)
 3. Click **Create API key**
 4. Copy the key
 
-### 4. Configure your environment
-
-Edit the `.env` file:
+### Step 8: Configure your environment
 
 ```bash
 nano .env
 ```
 
-Fill in:
+Fill in your values:
+
 ```
-GEMINI_API_KEY=your-actual-api-key-here
-SECRET_KEY=some-long-random-string
+GEMINI_API_KEY=paste-your-key-here
+SECRET_KEY=paste-a-long-random-string-here
 ```
 
-To generate a random `SECRET_KEY`:
+To generate a good `SECRET_KEY`:
+
 ```bash
 python3 -c "import secrets; print(secrets.token_hex(32))"
 ```
 
-### 5. Run the app
+Copy the output and paste it as your `SECRET_KEY`.
+
+Press `Ctrl+O` to save, `Ctrl+X` to exit nano.
+
+### Step 9: Test run
 
 ```bash
+source venv/bin/activate
 python run.py
 ```
 
-Then open your browser to: **http://localhost:8000**
+You should see:
+```
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000
+```
 
-### 6. Log in
+From your phone or laptop on the same Wi-Fi, open:
+```
+http://raspberrypi.local:8000
+```
 
-Default credentials (change immediately after first login):
+Log in with:
 - Username: `admin`
 - Password: `changeme`
 
----
+**Change this password** after your first login.
 
-## Running on your Pi (from another device on your network)
+Press `Ctrl+C` to stop the test run.
 
-Start the server:
+### Step 10: Run as a background service (auto-starts on boot)
+
 ```bash
-python run.py
+sudo nano /etc/systemd/system/health-journal.service
 ```
 
-From any other device on the same Wi-Fi:
-```
-http://<pi-ip-address>:8000
-```
-
-Find your Pi's IP:
-```bash
-hostname -I
-```
-
----
-
-## Running as a background service
-
-Create `/etc/systemd/system/health-journal.service`:
+Paste this (adjust the username if yours isn't `pi`):
 
 ```ini
 [Unit]
@@ -114,16 +168,65 @@ User=pi
 WorkingDirectory=/home/pi/Health_research_Journal
 ExecStart=/home/pi/Health_research_Journal/venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
 Restart=always
+RestartSec=5
+Environment=PATH=/home/pi/Health_research_Journal/venv/bin
 
 [Install]
 WantedBy=multi-user.target
 ```
 
-Enable and start:
+Save and exit, then enable it:
+
 ```bash
 sudo systemctl daemon-reload
 sudo systemctl enable health-journal
 sudo systemctl start health-journal
+sudo systemctl status health-journal
+```
+
+You should see `active (running)`. The app will now start automatically every time the Pi boots.
+
+### Step 11: Find your Pi's address
+
+```bash
+hostname -I
+```
+
+Access from any device on your home network:
+```
+http://<that-ip-address>:8000
+```
+
+You may want to set a static IP for the Pi in your router settings so the address doesn't change.
+
+---
+
+## Updating the app
+
+When new code is pushed to the repo:
+
+```bash
+cd ~/Health_research_Journal
+git pull
+sudo systemctl restart health-journal
+```
+
+---
+
+## Useful service commands
+
+```bash
+# Check if it's running
+sudo systemctl status health-journal
+
+# View live logs
+journalctl -u health-journal -f
+
+# Restart after config change
+sudo systemctl restart health-journal
+
+# Stop
+sudo systemctl stop health-journal
 ```
 
 ---
