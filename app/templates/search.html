@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Search &mdash; Health Research Journal{% endblock %}
+
+{% block content %}
+<h1 class="h3 mb-4">Search</h1>
+
+<form action="/search" method="get" class="mb-4">
+  <div class="input-group mb-2">
+    <input type="text" class="form-control" name="q" value="{{ query }}"
+           placeholder="Search by keyword (e.g. magnesium, thyroid, MTHFR)...">
+    <button class="btn btn-dark" type="submit">Search</button>
+  </div>
+  <div class="d-flex flex-wrap gap-2">
+    <!-- Source type filter -->
+    <select class="form-select form-select-sm w-auto" name="source_type" onchange="this.form.submit()">
+      <option value="">All types</option>
+      {% for t in ['link','screenshot','pdf','text'] %}
+      <option value="{{ t }}" {% if selected_type == t %}selected{% endif %}>{{ t }}</option>
+      {% endfor %}
+    </select>
+    <!-- Tag filter -->
+    <select class="form-select form-select-sm w-auto" name="tag" onchange="this.form.submit()">
+      <option value="">All tags</option>
+      {% for tag in all_tags %}
+      <option value="{{ tag.name }}" {% if selected_tag == tag.name %}selected{% endif %}>{{ tag.name }}</option>
+      {% endfor %}
+    </select>
+    {% if query or selected_tag or selected_type %}
+    <a href="/search" class="btn btn-sm btn-outline-secondary">Clear filters</a>
+    {% endif %}
+  </div>
+</form>
+
+{% if results %}
+<p class="text-muted small mb-3">{{ results|length }} result(s)</p>
+<div class="list-group">
+  {% for item in results %}
+  <a href="/item/{{ item.id }}" class="list-group-item list-group-item-action">
+    <div class="d-flex justify-content-between align-items-start">
+      <div>
+        <span class="badge source-badge source-{{ item.source_type }} me-2">{{ item.source_type }}</span>
+        <strong>{{ item.title }}</strong>
+      </div>
+      <small class="text-muted ms-2 text-nowrap">{{ item.created_at.strftime('%b %d, %Y') }}</small>
+    </div>
+    {% if item.summary and item.summary.claim %}
+    <p class="mb-1 mt-1 text-muted small">{{ item.summary.claim }}</p>
+    {% endif %}
+    {% if item.tags %}
+    <div class="mt-1">
+      {% for tag in item.tags %}
+      <span class="badge bg-secondary me-1">{{ tag.name }}</span>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </a>
+  {% endfor %}
+</div>
+{% elif query or selected_tag or selected_type %}
+<div class="text-center py-5 text-muted">
+  <p>No results found for your search.</p>
+  <a href="/search" class="btn btn-outline-secondary btn-sm">Clear filters</a>
+</div>
+{% else %}
+<div class="text-center py-5 text-muted">
+  <p>Enter a search term above to find items in your library.</p>
+</div>
+{% endif %}
+{% endblock %}

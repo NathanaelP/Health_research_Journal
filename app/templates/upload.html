@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Add Item &mdash; Health Research Journal{% endblock %}
+
+{% block content %}
+<h1 class="h3 mb-4">Add New Item</h1>
+
+<ul class="nav nav-tabs mb-4" id="uploadTabs" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active" id="link-tab" data-bs-toggle="tab" data-bs-target="#link-pane" type="button">Article / Link</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="file-tab" data-bs-toggle="tab" data-bs-target="#file-pane" type="button">Screenshot / PDF</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="text-tab" data-bs-toggle="tab" data-bs-target="#text-pane" type="button">Paste Text</button>
+  </li>
+</ul>
+
+<div class="tab-content">
+
+  <!-- Link tab -->
+  <div class="tab-pane fade show active" id="link-pane" role="tabpanel">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <p class="text-muted small">Paste a link to an article, blog post, PubMed abstract, or any web page.</p>
+        <form action="/submit/link" method="post" id="link-form">
+          <div class="mb-3">
+            <label class="form-label" for="url">URL</label>
+            <input class="form-control" type="url" id="url" name="url" placeholder="https://..." required>
+          </div>
+          <button type="submit" class="btn btn-dark" id="link-submit-btn">
+            <span class="spinner-border spinner-border-sm d-none me-1" id="link-spinner"></span>
+            Extract &amp; Summarize
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- File tab -->
+  <div class="tab-pane fade" id="file-pane" role="tabpanel">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <p class="text-muted small">Upload a screenshot (JPG, PNG, WEBP) or PDF. Text will be extracted automatically.</p>
+        <form action="/submit/file" method="post" enctype="multipart/form-data" id="file-form">
+          <div class="mb-3">
+            <label class="form-label" for="file">File</label>
+            <input class="form-control" type="file" id="file" name="file"
+                   accept=".jpg,.jpeg,.png,.webp,.bmp,.tiff,.pdf" required>
+          </div>
+          <button type="submit" class="btn btn-dark" id="file-submit-btn">
+            <span class="spinner-border spinner-border-sm d-none me-1" id="file-spinner"></span>
+            Upload &amp; Summarize
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Text tab -->
+  <div class="tab-pane fade" id="text-pane" role="tabpanel">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <p class="text-muted small">Paste text directly — a doctor thread, a copied article, a note.</p>
+        <form action="/submit/text" method="post" id="text-form">
+          <div class="mb-3">
+            <label class="form-label" for="title">Title / Topic</label>
+            <input class="form-control" type="text" id="title" name="title"
+                   placeholder="e.g. Thread on magnesium glycinate" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="content">Content</label>
+            <textarea class="form-control" id="content" name="content" rows="10"
+                      placeholder="Paste the text here..." required></textarea>
+          </div>
+          <button type="submit" class="btn btn-dark" id="text-submit-btn">
+            <span class="spinner-border spinner-border-sm d-none me-1" id="text-spinner"></span>
+            Save &amp; Summarize
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

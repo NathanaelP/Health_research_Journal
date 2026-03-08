@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% block title %}{{ item.title }} &mdash; Health Research Journal{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-3">
+  <div>
+    <a href="/" class="text-muted small text-decoration-none">&larr; Dashboard</a>
+    <h1 class="h3 mt-1">{{ item.title }}</h1>
+  </div>
+  <div class="d-flex gap-2">
+    <form action="/item/{{ item.id }}/reprocess" method="post" class="d-inline">
+      <button type="submit" class="btn btn-sm btn-outline-secondary"
+              onclick="return confirm('Re-run AI summary on this item?')">
+        &#x21BA; Re-summarize
+      </button>
+    </form>
+    <form action="/item/{{ item.id }}/delete" method="post" class="d-inline">
+      <button type="submit" class="btn btn-sm btn-outline-danger"
+              onclick="return confirm('Delete this item permanently?')">
+        Delete
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- Meta row -->
+<div class="d-flex flex-wrap gap-2 align-items-center mb-4">
+  <span class="badge source-badge source-{{ item.source_type }}">{{ item.source_type }}</span>
+  <small class="text-muted">Saved {{ item.created_at.strftime('%B %d, %Y at %H:%M') }}</small>
+  {% if item.source_url %}
+  <a href="{{ item.source_url }}" target="_blank" rel="noopener" class="small text-muted text-truncate" style="max-width:300px;">
+    {{ item.source_url }}
+  </a>
+  {% endif %}
+</div>
+
+<!-- Tags -->
+<div class="mb-4">
+  {% for tag in item.tags %}
+  <a href="/search?tag={{ tag.name }}" class="badge bg-secondary text-decoration-none me-1">{{ tag.name }}</a>
+  {% endfor %}
+  <button class="btn btn-sm btn-outline-secondary ms-1" data-bs-toggle="collapse" data-bs-target="#addTagForm">
+    + Tag
+  </button>
+  <div class="collapse mt-2" id="addTagForm">
+    <form action="/item/{{ item.id }}/tag" method="post" class="d-flex gap-2">
+      <input class="form-control form-control-sm" name="tag_name" placeholder="e.g. magnesium" style="max-width:200px;">
+      <button type="submit" class="btn btn-sm btn-dark">Add</button>
+    </form>
+  </div>
+</div>
+
+{% if item.summary %}
+<!-- Summary sections -->
+<div class="row g-4 mb-4">
+
+  <!-- Claim -->
+  <div class="col-12">
+    <div class="card border-0 bg-light">
+      <div class="card-body">
+        <h5 class="card-title text-uppercase small text-muted mb-2">Main Claim</h5>
+        <p class="fs-5 mb-0">{{ item.summary.claim }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bullets -->
+  <div class="col-md-6">
+    <div class="card h-100 shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title">Key Points</h5>
+        <ul class="mb-0">
+          {% for bullet in bullets %}
+          <li>{{ bullet }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ELI5 -->
+  <div class="col-md-6">
+    <div class="card h-100 shadow-sm border-success">
+      <div class="card-body">
+        <h5 class="card-title text-success">Simple Explanation</h5>
+        <p class="mb-0">{{ item.summary.eli5_explanation }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detailed -->
+  <div class="col-12">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title">Detailed Explanation</h5>
+        <div class="explanation-text">
+          {% for para in item.summary.detailed_explanation.split('\n\n') %}
+          <p>{{ para }}</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Limitations -->
+  {% if item.summary.limitations %}
+  <div class="col-12">
+    <div class="card shadow-sm border-warning">
+      <div class="card-body">
+        <h5 class="card-title text-warning">&#x26A0; Limitations &amp; Cautions</h5>
+        <p class="mb-0">{{ item.summary.limitations }}</p>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+
+{% else %}
+<div class="alert alert-warning">
+  No summary yet. This can happen if the Gemini API key is not configured, or if extraction failed.
+  <form action="/item/{{ item.id }}/reprocess" method="post" class="mt-2">
+    <button type="submit" class="btn btn-sm btn-warning">Try again</button>
+  </form>
+</div>
+{% endif %}
+
+<!-- Extracted text (collapsible) -->
+<div class="mb-4">
+  <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#rawText">
+    Show extracted text
+  </button>
+  <div class="collapse mt-2" id="rawText">
+    <div class="card">
+      <div class="card-body">
+        <pre class="small text-muted mb-0" style="white-space: pre-wrap;">{{ item.extracted_text[:5000] }}{% if item.extracted_text|length > 5000 %}
+... [truncated for display]{% endif %}</pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Notes -->
+<div class="mb-4">
+  <h5>Your Notes</h5>
+  {% if item.notes %}
+  {% for note in item.notes %}
+  <div class="card mb-2 shadow-sm">
+    <div class="card-body py-2">
+      <p class="mb-0">{{ note.note_text }}</p>
+      <small class="text-muted">{{ note.created_at.strftime('%b %d, %Y') }}</small>
+    </div>
+  </div>
+  {% endfor %}
+  {% endif %}
+
+  <button class="btn btn-sm btn-outline-secondary mt-2" data-bs-toggle="collapse" data-bs-target="#addNoteForm">
+    + Add note
+  </button>
+  <div class="collapse mt-2" id="addNoteForm">
+    <form action="/item/{{ item.id }}/note" method="post">
+      <div class="mb-2">
+        <textarea class="form-control" name="note_text" rows="3" placeholder="Your thoughts, questions, follow-ups..."></textarea>
+      </div>
+      <button type="submit" class="btn btn-sm btn-dark">Save note</button>
+    </form>
+  </div>
+</div>
+
+{% if item.summary %}
+<small class="text-muted">Summarized by {{ item.summary.model_used }} &bull; {{ item.summary.created_at.strftime('%B %d, %Y') }}</small>
+{% endif %}
+{% endblock %}

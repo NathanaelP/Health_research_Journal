@@ -1,0 +1,16 @@
+fastapi
+uvicorn[standard]
+jinja2
+python-multipart
+sqlalchemy
+passlib[bcrypt]
+itsdangerous
+starlette
+python-dotenv
+pydantic-settings
+google-generativeai
+readability-lxml
+requests
+pytesseract
+Pillow
+pymupdf
