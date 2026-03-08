@@ -11,6 +11,12 @@ from app.routes import web, upload, items, search
 
 
 def create_app() -> FastAPI:
+    # Ensure directories exist before DB engine tries to open the file
+    BASE_DIR = Path(__file__).resolve().parent.parent
+    Path(BASE_DIR / "instance").mkdir(parents=True, exist_ok=True)
+    for d in [settings.upload_dir, settings.extracted_dir, settings.summaries_dir]:
+        Path(d).mkdir(parents=True, exist_ok=True)
+
     # Ensure all tables exist
     Base.metadata.create_all(bind=engine)
 
@@ -20,10 +26,6 @@ def create_app() -> FastAPI:
         seed_default_user(db)
     finally:
         db.close()
-
-    # Ensure data directories exist
-    for d in [settings.upload_dir, settings.extracted_dir, settings.summaries_dir]:
-        Path(d).mkdir(parents=True, exist_ok=True)
 
     app = FastAPI(title="Health Research Journal", docs_url=None, redoc_url=None)
 
