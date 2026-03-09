@@ -60,12 +60,10 @@ async def _get_api():
 
         api = API(settings.twitter_db_path)
 
-        # If cookies are configured, delete any stale DB entry first.
-        # add_account silently skips when the account already exists, so without
-        # this the old (possibly logged-out) entry persists and twscrape reports
-        # "No active accounts".
-        if settings.twitter_cookies:
-            await api.pool.delete_accounts(settings.twitter_username)
+        # Always delete any stale DB entry before re-adding.
+        # add_account silently skips existing accounts, so locks/inactive state
+        # from previous failures would persist otherwise.
+        await api.pool.delete_accounts(settings.twitter_username)
 
         await api.pool.add_account(
             username=settings.twitter_username,
