@@ -20,7 +20,7 @@ def summarize(text: str) -> SummaryResult:
             "and add it to your .env file."
         )
 
-    trimmed = text[: settings.max_text_chars]
+    trimmed = text[: settings.groq_max_chars]
     prompt = PROMPT_TEMPLATE.format(text=trimmed)
 
     response = requests.post(

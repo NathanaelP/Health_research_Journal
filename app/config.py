@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     ollama_model: str = "qwen2.5:0.5b"
     groq_api_key: str = ""
     groq_model: str = "llama-3.1-8b-instant"
+    groq_max_chars: int = 8000  # ~2000 tokens, within Groq free-tier payload limits
 
     class Config:
         env_file = str(BASE_DIR / ".env")
