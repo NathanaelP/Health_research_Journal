@@ -23,7 +23,7 @@ def summarize(text: str) -> SummaryResult:
         response = requests.post(
             f"{settings.ollama_url}/api/generate",
             json={"model": settings.ollama_model, "prompt": prompt, "stream": False},
-            timeout=300,  # local models on Pi 3 can be slow
+            timeout=600,  # local models on Pi 3 can be slow; runs as background task
         )
         response.raise_for_status()
     except requests.exceptions.ConnectionError:
