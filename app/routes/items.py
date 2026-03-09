@@ -96,7 +96,7 @@ def add_tag(
 
 
 @router.post("/{item_id}/reprocess")
-async def reprocess_item(
+def reprocess_item(
     item_id: int,
     request: Request,
     db: Session = Depends(get_db),
@@ -109,7 +109,7 @@ async def reprocess_item(
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
 
-    await regenerate_summary(db, item)
+    regenerate_summary(db, item)
     return RedirectResponse(f"/item/{item_id}", status_code=302)
 
 

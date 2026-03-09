@@ -117,10 +117,12 @@
 </div>
 
 {% else %}
-<div class="alert alert-warning">
-  No summary yet. This can happen if the Gemini API key is not configured, or if extraction failed.
+<meta http-equiv="refresh" content="20">
+<div class="alert alert-info">
+  <strong>Summarizing...</strong> The AI is processing this content in the background.
+  This page will refresh automatically every 20 seconds.
   <form action="/item/{{ item.id }}/reprocess" method="post" class="mt-2">
-    <button type="submit" class="btn btn-sm btn-warning">Try again</button>
+    <button type="submit" class="btn btn-sm btn-outline-secondary">Retry manually</button>
   </form>
 </div>
 {% endif %}

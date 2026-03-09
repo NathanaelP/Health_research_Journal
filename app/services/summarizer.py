@@ -1,6 +1,6 @@
 """
 Orchestrates the full intake pipeline:
-  receive input → extract text → call Gemini → save to DB
+  receive input → extract text → call AI → save to DB
 """
 import json
 import re
@@ -23,11 +23,12 @@ async def process_item(
     raw_text: Optional[str] = None,
     original_filename: Optional[str] = None,
     title: Optional[str] = None,
+    background_tasks=None,
 ) -> Item:
     """
-    Full pipeline: extract text, summarize, persist, return Item.
-    If Gemini fails, the item is still saved with extracted text so
-    nothing is lost — summary will just be missing.
+    Full pipeline: extract text, persist, then summarize.
+    If background_tasks is provided, summarization runs after the response
+    is sent so the browser is not kept waiting.
     """
     extracted_text = ""
     derived_title = title or "Untitled"
@@ -74,22 +75,42 @@ async def process_item(
     db.refresh(item)
 
     # --- Step 3: Summarize ---
-    await _run_summary(db, item, extracted_text)
+    if background_tasks is not None:
+        background_tasks.add_task(_run_summary_background, item.id, extracted_text)
+    else:
+        _run_summary(db, item, extracted_text)
 
     return item
 
 
-async def regenerate_summary(db: Session, item: Item) -> None:
-    """Re-run Gemini summarization on an existing item."""
-    await _run_summary(db, item, item.extracted_text)
+def regenerate_summary(db: Session, item: Item) -> None:
+    """Re-run AI summarization on an existing item."""
+    _run_summary(db, item, item.extracted_text)
 
 
-async def _run_summary(db: Session, item: Item, text: str) -> None:
+def _run_summary_background(item_id: int, text: str) -> None:
+    """Background-task wrapper: creates its own DB session."""
+    from app.database import SessionLocal
+    db = SessionLocal()
+    try:
+        item = db.query(Item).filter(Item.id == item_id).first()
+        if item:
+            _run_summary(db, item, text)
+    finally:
+        db.close()
+
+
+def _run_summary(db: Session, item: Item, text: str) -> None:
     if not text or text.startswith("[Extraction error"):
         return
 
     try:
-        from app.services.gemini_service import summarize
+        if settings.ai_backend == "ollama":
+            from app.services.ollama_service import summarize
+        elif settings.ai_backend == "groq":
+            from app.services.groq_service import summarize
+        else:
+            from app.services.gemini_service import summarize
         result = summarize(text)
 
         if item.summary:
@@ -109,7 +130,7 @@ async def _run_summary(db: Session, item: Item, text: str) -> None:
 
     except Exception as e:
         # Don't lose the item — just log and continue
-        print(f"[WARN] Gemini summarization failed for item {item.id}: {e}")
+        print(f"[WARN] {settings.ai_backend} summarization failed for item {item.id}: {e}")
 
 
 def _clean(text: str) -> str:
