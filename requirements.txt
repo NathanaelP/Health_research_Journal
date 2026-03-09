@@ -3,12 +3,12 @@ uvicorn[standard]
 jinja2
 python-multipart
 sqlalchemy
-passlib[bcrypt]
+bcrypt
 itsdangerous
 starlette
 python-dotenv
 pydantic-settings
-google-generativeai
+google-genai
 readability-lxml
 requests
 pytesseract

@@ -1,17 +1,14 @@
-from passlib.context import CryptContext
+import bcrypt
 from sqlalchemy.orm import Session
 from app.models import User
 
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-
 def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
 
 def verify_password(plain: str, hashed: str) -> bool:
-    return pwd_context.verify(plain, hashed)
+    return bcrypt.checkpw(plain.encode(), hashed.encode())
 
 
 def get_user_by_username(db: Session, username: str) -> User | None:
