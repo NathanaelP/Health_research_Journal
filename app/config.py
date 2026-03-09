@@ -21,13 +21,6 @@ class Settings(BaseSettings):
     groq_api_key: str = ""
     groq_model: str = "llama-3.1-8b-instant"
     groq_max_chars: int = 8000  # ~2000 tokens, within Groq free-tier payload limits
-    twitter_username: str = ""
-    twitter_password: str = ""
-    twitter_email: str = ""
-    twitter_email_password: str = ""   # optional — only needed if X prompts for email verification
-    twitter_cookies: str = ""          # preferred: "auth_token=xxx; ct0=yyy" from browser DevTools
-    twitter_db_path: str = str(BASE_DIR / "data" / "twscrape.db")
-
     class Config:
         env_file = str(BASE_DIR / ".env")
         env_file_encoding = "utf-8"
