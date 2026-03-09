@@ -8,7 +8,7 @@ itsdangerous
 starlette
 python-dotenv
 pydantic-settings
-google-generativeai
+google-genai
 readability-lxml
 requests
 pytesseract

@@ -51,20 +51,22 @@ def summarize(text: str) -> SummaryResult:
         )
 
     try:
-        import google.generativeai as genai
+        from google import genai
     except ImportError:
         raise RuntimeError(
-            "google-generativeai not installed. Run: pip install google-generativeai"
+            "google-genai not installed. Run: pip install google-genai"
         )
 
-    genai.configure(api_key=settings.gemini_api_key)
-    model = genai.GenerativeModel(settings.gemini_model)
+    client = genai.Client(api_key=settings.gemini_api_key)
 
     # Trim text to avoid exceeding token limits
     trimmed = text[: settings.max_text_chars]
     prompt = PROMPT_TEMPLATE.format(text=trimmed)
 
-    response = model.generate_content(prompt)
+    response = client.models.generate_content(
+        model=settings.gemini_model,
+        contents=prompt,
+    )
     raw = response.text.strip()
 
     parsed = _parse_response(raw)
