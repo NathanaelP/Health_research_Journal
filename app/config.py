@@ -14,7 +14,10 @@ class Settings(BaseSettings):
     extracted_dir: str = str(BASE_DIR / "data" / "extracted")
     summaries_dir: str = str(BASE_DIR / "data" / "summaries")
     gemini_model: str = "gemini-1.5-flash"
-    max_text_chars: int = 30000  # trim before sending to Gemini
+    max_text_chars: int = 30000  # trim before sending to AI
+    ai_backend: str = "gemini"  # "gemini" | "ollama"
+    ollama_url: str = "http://localhost:11434"
+    ollama_model: str = "qwen2.5:0.5b"
 
     class Config:
         env_file = str(BASE_DIR / ".env")

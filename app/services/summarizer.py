@@ -89,7 +89,10 @@ async def _run_summary(db: Session, item: Item, text: str) -> None:
         return
 
     try:
-        from app.services.gemini_service import summarize
+        if settings.ai_backend == "ollama":
+            from app.services.ollama_service import summarize
+        else:
+            from app.services.gemini_service import summarize
         result = summarize(text)
 
         if item.summary:
@@ -109,7 +112,7 @@ async def _run_summary(db: Session, item: Item, text: str) -> None:
 
     except Exception as e:
         # Don't lose the item — just log and continue
-        print(f"[WARN] Gemini summarization failed for item {item.id}: {e}")
+        print(f"[WARN] {settings.ai_backend} summarization failed for item {item.id}: {e}")
 
 
 def _clean(text: str) -> str:
