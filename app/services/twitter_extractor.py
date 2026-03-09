@@ -73,9 +73,11 @@ async def _get_api():
             cookies=settings.twitter_cookies or None,
         )
 
-        # login_all activates accounts; with cookies it uses cookie auth (no
-        # Cloudflare risk). Without cookies it falls back to password login.
-        await api.pool.login_all()
+        # Only run login_all when no cookies are set — with cookies the account
+        # is already active=True after add_account and login_all triggers an
+        # unnecessary script-parsing flow that fails on Cloudflare-protected logins.
+        if not settings.twitter_cookies:
+            await api.pool.login_all()
 
         _api = api
         return _api
