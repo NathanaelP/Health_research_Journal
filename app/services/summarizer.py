@@ -36,8 +36,13 @@ async def process_item(
     # --- Step 1: Extract text ---
     try:
         if source_type == "link" and source_url:
-            from app.services.article_extractor import extract_article
-            derived_title, extracted_text = extract_article(source_url)
+            from app.services.twitter_extractor import is_twitter_url
+            if is_twitter_url(source_url):
+                from app.services.twitter_extractor import extract_thread
+                derived_title, extracted_text = await extract_thread(source_url)
+            else:
+                from app.services.article_extractor import extract_article
+                derived_title, extracted_text = extract_article(source_url)
 
         elif source_type == "screenshot" and file_path:
             from app.services.ocr_service import extract_text_from_image
