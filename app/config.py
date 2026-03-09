@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     twitter_password: str = ""
     twitter_email: str = ""
     twitter_email_password: str = ""   # optional — only needed if X prompts for email verification
+    twitter_cookies: str = ""          # preferred: "auth_token=xxx; ct0=yyy" from browser DevTools
     twitter_db_path: str = str(BASE_DIR / "data" / "twscrape.db")
 
     class Config:
