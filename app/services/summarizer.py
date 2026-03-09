@@ -107,6 +107,8 @@ def _run_summary(db: Session, item: Item, text: str) -> None:
     try:
         if settings.ai_backend == "ollama":
             from app.services.ollama_service import summarize
+        elif settings.ai_backend == "groq":
+            from app.services.groq_service import summarize
         else:
             from app.services.gemini_service import summarize
         result = summarize(text)
