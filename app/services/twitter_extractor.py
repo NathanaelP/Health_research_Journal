@@ -68,9 +68,10 @@ async def _get_api():
             cookies=settings.twitter_cookies or None,
         )
 
-        # When cookies are provided, the account is already active — login_all is a no-op.
-        # When only password is set, login_all performs the login flow (may be Cloudflare-blocked).
-        await api.pool.login_all()
+        # When cookies are provided, the account is already active — skip login_all to avoid
+        # Cloudflare blocking the login flow on datacenter IPs.
+        if not settings.twitter_cookies:
+            await api.pool.login_all()
 
         _api = api
         return _api
@@ -80,7 +81,7 @@ async def _extract_via_twscrape(tweet_id: str, url: str) -> tuple[str, str]:
     """Fetch thread using twscrape (requires credentials in .env)."""
     api = await _get_api()
 
-    tweet = await api.tweet_detail(int(tweet_id))
+    tweet = await api.tweet_details(int(tweet_id))
     if tweet is None:
         raise ValueError(f"Tweet not found or account is protected: {url}")
 
