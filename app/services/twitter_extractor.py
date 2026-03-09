@@ -85,6 +85,7 @@ async def _get_api():
 
 async def _extract_via_twscrape(tweet_id: str, url: str) -> tuple[str, str]:
     """Fetch thread using twscrape (requires credentials in .env)."""
+    global _api
     api = await _get_api()
 
     tweet = await api.tweet_details(int(tweet_id))
@@ -103,6 +104,7 @@ async def _extract_via_twscrape(tweet_id: str, url: str) -> tuple[str, str]:
         thread_tweets = [tweet]
 
     thread_tweets.sort(key=lambda t: t.date)
+    _api = None  # reset singleton so next request gets a fresh account state
 
     first_text = thread_tweets[0].rawContent or ""
     snippet = first_text[:80] + ("..." if len(first_text) > 80 else "")
@@ -157,6 +159,7 @@ async def extract_thread(url: str) -> tuple[str, str]:
         try:
             return await _extract_via_twscrape(tweet_id, url)
         except Exception as e:
+            _api = None  # reset so the next submission reinitializes (clears timed-out state)
             print(f"[INFO] twscrape failed for tweet {tweet_id}: {e} — trying ThreadReaderApp")
 
     return _extract_via_threadreaderapp(tweet_id)
