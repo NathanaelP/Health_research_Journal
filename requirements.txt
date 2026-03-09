@@ -14,4 +14,3 @@ requests
 pytesseract
 Pillow
 pymupdf
-twscrape
